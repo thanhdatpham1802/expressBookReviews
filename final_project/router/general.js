@@ -1,31 +1,71 @@
 const axios = require('axios');
 
+const BASE_URL = 'http://localhost:5000';
+
 // Get all books
 async function getAllBooks() {
-    const response = await axios.get('http://localhost:5000/books');
-    console.log(response.data);
+    try {
+        const response = await axios.get(`${BASE_URL}/books`);
+        return response.data;
+    } catch (error) {
+        return { error: "Error fetching books" };
+    }
 }
 
 // Get by ISBN
 async function getByISBN(isbn) {
-    const response = await axios.get(`http://localhost:5000/books/isbn/${isbn}`);
-    console.log(response.data);
+    try {
+        const response = await axios.get(`${BASE_URL}/books/isbn/${isbn}`);
+        return response.data;
+    } catch (error) {
+        return { error: "ISBN not found or request failed" };
+    }
 }
 
-// Get by Author
+// Get by Author (FILTER CHUẨN)
 async function getByAuthor(author) {
-    const response = await axios.get(`http://localhost:5000/books/author/${author}`);
-    console.log(response.data);
+    try {
+        const response = await axios.get(`${BASE_URL}/books`);
+        const books = response.data;
+
+        const result = Object.values(books).filter(
+            (book) => book.author.toLowerCase() === author.toLowerCase()
+        );
+
+        if (result.length === 0) {
+            return { message: "Author not found" };
+        }
+
+        return result;
+    } catch (error) {
+        return { error: "Error fetching books by author" };
+    }
 }
 
-// Get by Title
+// Get by Title (FILTER CHUẨN)
 async function getByTitle(title) {
-    const response = await axios.get(`http://localhost:5000/books/title/${title}`);
-    console.log(response.data);
+    try {
+        const response = await axios.get(`${BASE_URL}/books`);
+        const books = response.data;
+
+        const result = Object.values(books).filter(
+            (book) => book.title.toLowerCase() === title.toLowerCase()
+        );
+
+        if (result.length === 0) {
+            return { message: "Title not found" };
+        }
+
+        return result;
+    } catch (error) {
+        return { error: "Error fetching books by title" };
+    }
 }
 
-// Run
-getAllBooks();
-getByISBN("9781593279509");
-getByAuthor("Marijn Haverbeke");
-getByTitle("Eloquent JavaScript");
+// Export functions
+module.exports = {
+    getAllBooks,
+    getByISBN,
+    getByAuthor,
+    getByTitle
+};

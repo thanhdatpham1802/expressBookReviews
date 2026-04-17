@@ -2,7 +2,18 @@ const axios = require('axios');
 
 const BASE_URL = 'http://localhost:5000';
 
-// Get all books
+/**
+ * Get all books (Promise version)
+ */
+function getAllBooksPromise() {
+    return axios.get(`${BASE_URL}/books`)
+        .then(response => response.data)
+        .catch(error => ({ error: "Error fetching books" }));
+}
+
+/**
+ * Get all books (Async/Await version)
+ */
 async function getAllBooks() {
     try {
         const response = await axios.get(`${BASE_URL}/books`);
@@ -12,7 +23,9 @@ async function getAllBooks() {
     }
 }
 
-// Get by ISBN
+/**
+ * Get book by ISBN
+ */
 async function getByISBN(isbn) {
     try {
         const response = await axios.get(`${BASE_URL}/books/isbn/${isbn}`);
@@ -22,49 +35,45 @@ async function getByISBN(isbn) {
     }
 }
 
-// Get by Author (FILTER CHUẨN)
+/**
+ * Get books by Author (filter local data)
+ */
 async function getByAuthor(author) {
     try {
         const response = await axios.get(`${BASE_URL}/books`);
         const books = response.data;
 
         const result = Object.values(books).filter(
-            (book) => book.author.toLowerCase() === author.toLowerCase()
+            book => book.author.toLowerCase() === author.toLowerCase()
         );
 
-        if (result.length === 0) {
-            return { message: "Author not found" };
-        }
-
-        return result;
+        return result.length > 0 ? result : { message: "Author not found" };
     } catch (error) {
         return { error: "Error fetching books by author" };
     }
 }
 
-// Get by Title (FILTER CHUẨN)
+/**
+ * Get books by Title (filter local data)
+ */
 async function getByTitle(title) {
     try {
         const response = await axios.get(`${BASE_URL}/books`);
         const books = response.data;
 
         const result = Object.values(books).filter(
-            (book) => book.title.toLowerCase() === title.toLowerCase()
+            book => book.title.toLowerCase() === title.toLowerCase()
         );
 
-        if (result.length === 0) {
-            return { message: "Title not found" };
-        }
-
-        return result;
+        return result.length > 0 ? result : { message: "Title not found" };
     } catch (error) {
         return { error: "Error fetching books by title" };
     }
 }
 
-// Export functions
 module.exports = {
     getAllBooks,
+    getAllBooksPromise,
     getByISBN,
     getByAuthor,
     getByTitle

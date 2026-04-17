@@ -1,94 +1,84 @@
-const axios = require('axios');
 
-const BASE_URL = 'http://localhost:5000';
+const express = require('express');
+const public = express.Router();
 
-/**
- * Get all books (Promise version)
- */
-function getAllBooksPromise() {
-    return axios.get(`${BASE_URL}/books`)
-        .then(response => response.data)
-        .catch(error => ({ error: "Error fetching books" }));
-}
+let db = require('./booksdb.js').books;
 
-/**
- * Get all books (Async/Await version)
- */
-async function getAllBooks() {
-    try {
-        const response = await axios.get(`${BASE_URL}/books`);
-        return response.data;
-    } catch (error) {
-        return { error: "Error fetching books" };
+let isValid = require('./auth_users.js').isValid;
+let users = require('./auth_users.js').users;
+
+
+
+// db connection not provided in the course
+
+
+
+function search(col, it, res) {
+    if (col === '/') return res.status(200).json({ books: db });
+    else if (col === 'review' && db.hasOwnProperty(it))
+        return res.status(200).json(db[it].reviews);
+    else {
+        let result = {};
+        if (col === 'isbn') Object.keys(db)
+            .filter(id => String(id).indexOf(it) > -1)
+            .forEach(id => result[id] = db[id])
+            ;
+        else {
+            for (const id in db) {
+                if (Object.hasOwnProperty.call(db, id)) {
+                    if (String(db[id][col]).indexOf(it) > -1) {
+                        result[id] = db[id]
+                    }
+                }
+            }
+        }
+        if (Object.keys(result).length)
+            return res.status(200).json(result);
+        else return res.status(404).json({ message: 'Not Found' })
     }
 }
 
-/**
- * Get book by ISBN
- */
-async function getByISBN(isbn) {
-    try {
-        const response = await axios.get(`${BASE_URL}/books/isbn/${isbn}`);
-        return response.data;
-    } catch (error) {
-        return { error: "ISBN not found or request failed" };
+
+
+public.get('/', function(req, res) {
+    return search('/', null, res)
+});
+
+public.get('/isbn/:isbn', function(req, res) {
+    return search('isbn', req.params['isbn'], res)
+});
+
+public.get('/author/:author', function(req, res) {
+    return search('author', req.params['author'], res)
+});
+
+public.get('/title/:title', function(req, res) {
+    return search('title', req.params['title'], res)
+});
+
+public.get('/review/:isbn', function(req, res) {
+    return search('review', req.params['isbn'], res)
+});
+
+
+
+public.post('/register', (req, res) => {
+    const db = isValid(req.body.username);
+    let note = 'is not valid (2 to 8 characters, lowercase or numbers)'
+      , code = 401
+      ;
+    if (db === 0) note = 'is unavailable';
+    else if (db === 1) {
+        code = 200;
+        users.push({
+            username: req.body.username,
+            password: req.body.password
+        });
+        note = 'successfully registered, you can login'
     }
-}
+    return res.status(code).json({ message: `${req.body.username} ${note}` })
+});
 
-/**
- * Get books by Author (filter local data)
- */
-async function getByAuthor(author) {
-    try {
-        const response = await axios.get(`${BASE_URL}/books`);
-        const books = response.data;
 
-        const result = Object.values(books).filter(
-            book => book.author.toLowerCase() === author.toLowerCase()
-        );
 
-        return result.length > 0 ? result : { message: "Author not found" };
-    } catch (error) {
-        return { error: "Error fetching books by author" };
-    }
-}
-
-/**
- * Get books by Title (filter local data)
- */
-async function getByTitle(title) {
-    try {
-        const response = await axios.get(`${BASE_URL}/books`);
-        const books = response.data;
-
-        const result = Object.values(books).filter(
-            book => book.title.toLowerCase() === title.toLowerCase()
-        );
-
-        return result.length > 0 ? result : { message: "Title not found" };
-    } catch (error) {
-        return { error: "Error fetching books by title" };
-    }
-}
-
-module.exports = {
-    getAllBooks,
-    getAllBooksPromise,
-    getByISBN,
-    getByAuthor,
-    getByTitle
-};
-
-// TEST FUNCTIONS (REQUIRED FOR FULL SCORE)
-
-// Get all books
-getAllBooks().then(data => console.log("All Books:", data));
-
-// Get by ISBN
-getByISBN("9781593279509").then(data => console.log("By ISBN:", data));
-
-// Get by Author
-getByAuthor("Marijn Haverbeke").then(data => console.log("By Author:", data));
-
-// Get by Title
-getByTitle("Eloquent JavaScript").then(data => console.log("By Title:", data));
+module.exports.general = public;

@@ -1,43 +1,31 @@
-const express = require('express');
-let books = require("./booksdb.js");
-let isValid = require("./auth_users.js").isValid;
-let users = require("./auth_users.js").users;
-const public_users = express.Router();
+const axios = require('axios');
 
+// Get all books
+async function getAllBooks() {
+    const response = await axios.get('http://localhost:5000/books');
+    console.log(response.data);
+}
 
-public_users.post("/register", (req,res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
-});
+// Get by ISBN
+async function getByISBN(isbn) {
+    const response = await axios.get(`http://localhost:5000/books/isbn/${isbn}`);
+    console.log(response.data);
+}
 
-// Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
-});
+// Get by Author
+async function getByAuthor(author) {
+    const response = await axios.get(`http://localhost:5000/books/author/${author}`);
+    console.log(response.data);
+}
 
-// Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
- });
-  
-// Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
-});
+// Get by Title
+async function getByTitle(title) {
+    const response = await axios.get(`http://localhost:5000/books/title/${title}`);
+    console.log(response.data);
+}
 
-// Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
-});
-
-//  Get book review
-public_users.get('/review/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
-});
-
-module.exports.general = public_users;
+// Run
+getAllBooks();
+getByISBN("9781593279509");
+getByAuthor("Marijn Haverbeke");
+getByTitle("Eloquent JavaScript");
